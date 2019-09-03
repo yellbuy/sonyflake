@@ -16,7 +16,7 @@ import (
 // These constants are the bit lengths of Sonyflake ID parts.
 const (
 	BitLenTime      = 39                               // bit length of time
-	BitLenSequence  = 8                                // bit length of sequence number
+	BitLenSequence  = 12                               // bit length of sequence number
 	BitLenMachineID = 63 - BitLenTime - BitLenSequence // bit length of machine id
 )
 
@@ -63,14 +63,14 @@ func NewSonyflake(st Settings) *Sonyflake {
 		return nil
 	}
 	if st.StartTime.IsZero() {
-		sf.startTime = toSonyflakeTime(time.Date(2014, 9, 1, 0, 0, 0, 0, time.UTC))
+		sf.startTime = toSonyflakeTime(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC))
 	} else {
 		sf.startTime = toSonyflakeTime(st.StartTime)
 	}
 
 	var err error
 	if st.MachineID == nil {
-		sf.machineID, err = lower16BitPrivateIP()
+		sf.machineID, err = lower12BitPrivateIP()
 	} else {
 		sf.machineID, err = st.MachineID()
 	}
@@ -155,13 +155,13 @@ func isPrivateIPv4(ip net.IP) bool {
 		(ip[0] == 10 || ip[0] == 172 && (ip[1] >= 16 && ip[1] < 32) || ip[0] == 192 && ip[1] == 168)
 }
 
-func lower16BitPrivateIP() (uint16, error) {
+func lower12BitPrivateIP() (uint16, error) {
 	ip, err := privateIPv4()
 	if err != nil {
 		return 0, err
 	}
 
-	return uint16(ip[2])<<8 + uint16(ip[3]), nil
+	return uint16(ip[2]&(1<<4-1))<<8 + uint16(ip[3]), nil
 }
 
 // Decompose returns a set of Sonyflake ID parts.

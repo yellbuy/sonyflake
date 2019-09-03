@@ -17,7 +17,6 @@ var machineID uint64
 func init() {
 	var st Settings
 	st.StartTime = time.Now()
-
 	sf = NewSonyflake(st)
 	if sf == nil {
 		panic("sonyflake not created")
@@ -25,7 +24,7 @@ func init() {
 
 	startTime = toSonyflakeTime(st.StartTime)
 
-	ip, _ := lower16BitPrivateIP()
+	ip, _ := lower12BitPrivateIP()
 	machineID = uint64(ip)
 }
 
@@ -34,6 +33,7 @@ func nextID(t *testing.T) uint64 {
 	if err != nil {
 		t.Fatal("id not generated")
 	}
+	//fmt.Println("id:", id)
 	return id
 }
 
@@ -42,6 +42,7 @@ func TestSonyflakeOnce(t *testing.T) {
 	time.Sleep(time.Duration(sleepTime) * 10 * time.Millisecond)
 
 	id := nextID(t)
+	//fmt.Println("sonyflake id:", id)
 	parts := Decompose(id)
 
 	actualMSB := parts["msb"]
@@ -114,6 +115,7 @@ func TestSonyflakeFor10Sec(t *testing.T) {
 	}
 
 	if maxSequence != 1<<BitLenSequence-1 {
+		fmt.Println("BitLenSequence:", 1<<BitLenSequence-1)
 		t.Errorf("unexpected max sequence: %d", maxSequence)
 	}
 	fmt.Println("max sequence:", maxSequence)
@@ -145,6 +147,7 @@ func TestSonyflakeInParallel(t *testing.T) {
 		if set.Contains(id) {
 			t.Fatal("duplicated id")
 		} else {
+			fmt.Println("id:", id)
 			set.Add(id)
 		}
 	}
