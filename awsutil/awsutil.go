@@ -40,7 +40,7 @@ func AmazonEC2MachineID() (uint16, error) {
 		return 0, err
 	}
 
-	return uint16(ip[2])<<8 + uint16(ip[3]), nil
+	return uint16(ip[2]&(1<<4-1))<<8 + uint16(ip[3]), nil
 }
 
 // TimeDifference returns the time difference between the localhost and the given NTP server.
